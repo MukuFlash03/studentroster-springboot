@@ -1,0 +1,109 @@
+Spring Boot Tutorial
+- https://www.youtube.com/watch?v=9SGDpanrc8U
+
+
+Error Log
+
+-----------------------------------
+04/10/23
+
+
+
+1. Run configuration not set; couldn't see Run button in UI.
+- Had to go to File -> Project Structure -> Modules -> Sources
+- Then, mark src directory as Source (blue color).
+
+
+2. Dependencies not found
+- https://stackoverflow.com/questions/53869118/importing-to-intellij-error-package-org-springframework-boot-does-not-exist
+- mvn -U idea:idea
+
+3. Maven not installed
+- sudo apt-get install maven
+
+
+4. Java HOME environment variable not set to latest JDK version 19 (still set to 13)
+ $ sudo update-alternatives --config java
+ $ sudo nano /etc/environment
+ - Set JAVA_HOME path to latest version location found in first command output.
+ - Reload environment using: 
+     $ source /etc/environment
+ - Verify environment variable's new value: 
+     $ echo $JAVA_HOME
+
+mvn --version command gave error saying JAVA_HOME env_var not defined correctly.
+- Had set incorrect java JDK path initially.
+- Must not include /bin/java part; only include path till jdk-version-number
+  - https://stackoverflow.com/a/51621901
+  
+
+
+5. Missing Maven tab in IntelliJ
+- Had to add project as a Maven project
+  - https://stackoverflow.com/questions/57730438/in-intellij-ce-how-do-i-get-the-maven-tab-to-show-up
+- Done by Right-clicking on pom.xml and selecting Add as Maven Project
+- This gave some output regarding IDEA Project files being removed:
+  "The imported module settings are stored in the internal storage due to the new fast Maven import. You can change that behavior in Maven Import Settings."
+  
+  
+6. Version mismatch: Current local version 19 not compatible with Spring init version 20
+- Had to re-generate starter code with version 17
+- Project already added as a Maven project
+- This time, Running project, worked successfully.
+- Gave "no suitable driver class" error, which is in line with current config as per tutorial video.
+
+
+7. Commenting out dependencies and Reloading didn't work
+- Tried commenting out DB JPA dependency.
+- Reloaded project by right clicking and Ran it again but didn't work.
+- Right tab -> Maven -> Lifecycle folder -> clean -> install
+
+- Deleting .idea folder solved this
+- Had to reopen pom.xml as Maven project
+- Executed this command: $ mvn clean install
+- Ran the main class again and finally it worked
+- Web server was running on localhost:8080
+
+8. Couldn't see folder structure after deleting .idea folder
+- File -> Open -> Select pom.xml to open as Maven project
+
+
+9. Added GetMapping but still seeing WhiteLabel Error
+- https://stackoverflow.com/questions/55501613/how-to-fix-whitelabel-error-page-on-spring-framework-get-request-is-not-work
+
+- Suggested to keep all "controller" directories under main java class directory.
+  - But this is not solution since I have only one directory at this point.
+ 
+Didn't work
+- https://www.youtube.com/watch?v=dZ7dDACmlhk
+- https://www.youtube.com/watch?v=LJ9hZYC5RSw
+- https://www.youtube.com/watch?v=sXyyyDjeOTU
+
+
+- Very simple issue: Need to pass resources or url path as a parameter inside Get/Request Mapping()
+- @GetMapping("/") or @RequestMapping("/hello")
+- Got hint from this answer: https://stackoverflow.com/a/59299083
+
+
+
+10. Same package another class imported but gives parameter not found, bean required error when defining constructor
+
+- Something to do with using appropriate annotations, possibly Dependency Injection
+- Details explained in Notes #12
+- Need to add @Autowired to constructor/setter using Dependency Injection
+- Need to add @Component or @Service to the class whose object is being passed as a Dependency Injection
+
+
+
+11. Exception while Running application server after creating DB and editing application.properties and uncommenting dependency in pom.xml
+
+! HikariPool-1 - Exception during pool initialization.
+! org.postgresql.util.PSQLException: The server requested SCRAM-based authentication, but no password was provided.
+
+- Seem to have been solved by storing username and password in application.properties file.
+- The exception didn't occur on Running application and "HikariPool-1 - Start completed" message was seen as successfully completed in Run logs. 
+- Tutorial guy didn't do it since he had a Mac is what he had mentioned in the video.
+
+
+
+

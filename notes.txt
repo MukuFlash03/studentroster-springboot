@@ -1,0 +1,437 @@
+Spring Boot Tutorial
+- https://www.youtube.com/watch?v=9SGDpanrc8U
+
+
+Deployed Web Server (localhost)
+- http://localhost:8080/api/v1/studentList
+
+
+Start DB
+$ sudo systemctl start postgresql
+
+Connect as Root user
+$ sudo -u postgres psql
+
+Connect to DB as user
+$ psql -d projects -U mukuflash
+
+Stop DB
+$ sudo systemctl stop postgresql
+
+
+-----------------------------------
+04/10/23
+
+
+1. Spring Boot
+
+- A popular open-source framework for building web applications and microservices in Java. 
+- Built on top of the Spring Framework and provides a simplified and opinionated approach to configuring and deploying Spring applications.
+- Aims to make it easier and faster to develop, test, and deploy Spring applications, while still retaining the flexibility and power of the Spring Framework.
+
+Features:
+- Security, Logging, Metrics
+- Connecting to DB (SQL+NoSQL)
+- Production ready
+- Microservices
+- Configuration
+- Dependency Injection
+- Easy to learn, Great community
+
+
+2. Project overview
+
+- Building backend part of stack application excluding frontend.
+- 3 Layers: API (Verbs/Methods), Service (Business Logic), Data Access
+
+3. Spring Initializer
+
+- Bootstrap any Spring application.
+- Build depedencies and package them into one unit, ready to download.
+
+- Maven		- Jar	- Latest non-snapshot version for Spring Boot	- Latest Java Version
+- Dependencies:
+  - Spring Web
+  - Spring Data JPA
+  - PostgreSQL Driver
+
+- Click on Generate to download the project starter repo as a zip.
+- Extract it.
+
+
+4. Navigate to the folder.
+
+- Look at the pom.xml file.
+- Contains dependencies info, java version, etc.
+- Might need to change java version (this resolved issues during CSE 564 Project)
+
+
+5. Starter Code Repository Structure
+
+- demo -> src -> test 
+  - This is where all the testing code goes.
+
+- demo -> src -> main -> java
+  - This is where all our main code goes.
+  
+- demo -> src -> main -> resources -> application.properties
+  - This is where we configure all application properties and environment-specific properties.
+  
+- demo -> src -> main -> resources -> static and templates
+  - This is where HTML, CSS, JS files would go when doing Web Development.
+  
+ 
+ 
+6. Comment out JPA dependency in pom.xml 
+
+- Temporary step until database isn't setup
+- Test out local server running on port 8080 by Reloading project and running main class again
+- Stop server
+
+
+7. Creating API Endpoint
+
+- Edit main class.
+- Add @RestController tag which specifies that this class will serve RESTful endpoints
+- Define a REST endpoint by using a local function
+- Assign a METHOD verb tag to that function, for instance @GetMapping
+
+
+- Can return String or List<String>
+- Former simply displays whatever String is returned.
+- Latter displays data as a List of Strings, somewhat like a JSON but without key-value pairs.
+
+------------------------------------
+
+04/11/23
+
+8. Student Class
+
+- Will model a user-defined datatype class for Student entity
+- Will define some generic attributes
+- Eventually this will also be stored in DB
+
+
+- Add private class attributes
+- Generate three constructors: 
+  - w/o any attributes
+  - with all attributes
+  - all attributes except id (DB will generate id)
+  
+- Generate getters and setters
+- Generate toString() : Displays all attributes' info for current class object
+
+
+9. Update Get method in Main Class to return Student list
+
+- This time, data is returned in the form of key-value pairs similar to JSON
+- We get an array of JSON objects
+- Our class was converted into a JSON object
+
+
+10. API Layer
+
+- Start to structure our application into layers
+- Create a StudentController class inside Student which will have all API resources
+- All classes and packages must always be inside of the main Java class root folder.
+
+- Move getMapping code for Student list from Main class to Controller class.
+- Add RequestMapping below RestController annotation before class name
+  - This should have url resource path as a parameter
+- Get Mapping is also added before method but w/o any url resource path
+
+
+11. Business Logic (Service Layer)
+
+- Middle layer that communicates with both API App layer and Data layer
+- Create a new class StudentService
+- Move the getStudents() List method from Controller to Service class
+- Create a private class attribute of type StudentService in Controller class
+- Generate a constructor for it
+- Inside getStudents() in Controller return ss.getStudents()
+- This essentially adds a level of abstraction
+
+
+12. Dependency Injection
+
+- Dependency Injection (DI) is a design pattern used in software development that allows objects to be created and configured outside of the code that uses them. 
+- It is a technique used to achieve loose coupling between objects in an application, making the application more modular, extensible, and easier to maintain.
+- DI helps to promote code that is more modular, testable, and maintainable, by allowing objects to be configured and managed separately from the code that uses them.
+- 3 injection approaches: Constructor, Setter, Field
+
+- All of this behavior is attributed to the Spring IoC (Inversion of Control) Container, which essentially takes over the responsibility of instantiating, configuring, and assembling objects from the application code, leaving the application code free to focus on the business logic.
+
+- In our current code, passing another class object as a parameter in another class's constructor and then assigning using = and simply the variable name will not work.
+- It would work if SService object is instantiated instead of assigning as a parameter
+- However, this is a bad coding practice and must use Dependency injection as much as possible.
+
+- This can be done using an annotation called @Autowired to be added to the constructor.
+- This automatically creates a new object of that class internally and allows to pass the class object via Dependecy Injection
+- Additionally, the class being passed as a parameter must also be informed that it would be instantiated automatically, i.e. it would be a "Spring Bean".
+- This can be done using an annotation called @Component.
+- More specifically, we'll be using the @Service annotation just for semantic clarity, but is itself a type of @Component.
+- This is similar to why we use @RestController specifically for the main class.
+
+- There red error squiggly lines under parameter of constructor no longer appear.
+
+
+
+13. Application Properties File Edit for DB Connection + Installing PostGRESQL
+
+- Will need to edit the application.properties file for this; this is present under resources folder.
+- We'll be using the PostGRES DB.
+- Fetched properties from spring-boot-jpa course Git repo [amigocodes]
+- Changed url resource path ending to student
+- Rest remains same.
+- create-drop means that we'll start with a clean state each time the application is started.
+
+ - Need to install PostGRES on local system.
+ 
+ 
+
+14. Connecting to a Real DB
+
+- Some commands:
+  - \q  : Quit psql
+  - \l  : List DBs
+  - \du : List users
+  - \d  : List relations/tables
+
+- Creating new user: First sign into psql with root postgres user 
+  $ sudo -u postgres psql
+  
+- Create new user
+  $ CREATE USER mukuflash WITH PASSWORD 'mudiNADps|22';
+
+-  Grant CreateDB privileges
+  $ ALTER USER mukuflash CREATEDB;
+  
+  
+- Create a new database:
+  $ createdb your_database_name -O your_username.
+
+- Grant access privileges to newly created DB for user and root user
+  $ GRANT ALL PRIVILEGES ON DATABASE "projects" TO mukuflash  
+  $ GRANT ALL PRIVILEGES ON DATABASE "projects" TO postgres
+
+- Sign out and connect to the DB as user mukuflash
+  $ psql -d your_database_name -U your_username
+  
+
+- Uncomment spring-boot-jpa dependency in pom.xml
+- Reload project (Delete .idea if required)
+
+- Add username and password to application.properties file to avoid Error #11
+
+
+
+
+15. JPA and @Entity -> Adding Student objects data into Postgres DB
+
+- Added annotations in Student class
+- Before class : @Entity, @Table
+- Inside class : @Id, @SequenceGenerator(), @GeneratedValue()
+
+Logs output:
+$ Hibernate: create sequence student_sequence start with 1 increment by 1
+$ Hibernate: 
+    
+    create table student (
+       id bigint not null,
+        age integer,
+        dob date,
+        email varchar(255),
+        name varchar(255),
+        primary key (id)
+    )
+
+
+- Create table statement generated on own; table name assigned based on the class name, I presume.
+
+- What is Hibernate:
+  - Hibernate is an Object-Relational Mapping (ORM) framework for Java.
+  - It provides a way to map Java objects to DB tables and vice versa.
+  
+  
+
+16. Connect to DB in IntelliJ
+
+- RHS panel, Select Database, Click on + to add new DB -> Select PostgreSQL
+- Enter DB name, username, password and Test Connection
+- Apply and Press Ok
+- Database will be added and loaded in the GUI of IntelliJ
+- Student table and sequence generator will be seen.
+- Go back to terminal, \d command in psql will now list these two entities
+- \d student , i.e. <table-name> gives columns and more info about table.
+
+
+17. Configuring Data Access Layer -> JPA Repository
+
+- Create a new class StudentRepository as an Interface
+- Make it extend JPARepository
+  - <Object, ID> types to be passed: Student, Long (since Long was defined as datatype of Id in Student class)
+- Add @Repository annotation
+
+- Introduce Dependency Injection to connect Service layer and Data layer
+- In SService, create a new variable of SRepo type
+- Generate its constructor with @Autowired annotation
+
+- Inside getStudents(), return data from DB using a call to sRepo.findAll()
+- Comment out previous code which created a new student
+- These methods are all provided as part of the Spring framework and we do not need to implement them.
+
+
+18. Adding Students to our DB
+
+- On restarting server, we now get an empty list as we have established connection to our DB and it does not contain any students
+- Create a new class StudentConfig
+- Add @Configuration annotation to Class
+
+- Attribute CommandLineRunner is defined which takes in the SRepo as a parameter and returns args containing data
+- Inside this, paste new Student(data)
+  - Optionally, add on-demand static import by accessing menu using Alt + Enter
+  
+- Create any number of new students, I've created two for now.
+  - No longer need Id since DB will autogenerate based on student_sequence provided
+- Save these in DB using SRepo passed object and invoke saveAll()
+  - This takes in a list of objects to be stored.
+  
+ 
+ - Restart app server and this time logs also contain some Insert statements for each of the objects passed in the data in the function.
+ - On checking webpage, instead of empty list, students data is now fetched since this data was also inserted into the DB as a part of the code.
+ - Can confirm this by checking data in DB table
+   - Can access query console from DB panel in IntelliJ
+ 
+ 
+ 
+ 19. Transient annotation to calculate Age
+ 
+ - No need to hardcode age as it can be calculated from DoB
+ - We won't need a DB table column as well
+ - Remove all definitions and initializations of age from Student class and objects
+ - Add @Transient annotation to attribute in Student
+ - Inside getAge(), return difference between current date and DoB
+ 
+ 
+ 
+20. Writing Code for Other REST Verbs: POST
+
+- Passing student data from user or client side.
+ 
+- Create method in SController with @PostMapping annotation
+- This receives creates Student object from @ResponseBody data
+- This method adds new student using method defined in SService
+- Hence add, this helper method in SService as well
+  - For now, simply print the Student object
+  
+ - Now, click on the globe icon next to @PostMapping
+ - Click on "Generate request in HTTP Client"
+ - Send a student's data in JSON format
+ - Click Run next to POST request
+ - Check Console and Run pane below to see successful delivery of data to server
+ 
+ - Can also use POSTMAN and similar tools, however, with Spring Boot and IntelliJ everything is integrated nicely.
+ 
+ 
+ 
+21. Writing Business Logic to Store POST data into DB
+  
+- Use an Optional<Student> findStudentByEmail(String email)
+  - This is translated into either of the two queries:
+    - 'SELECT * FROM student WHERE email = ?'
+    - Or using @Query("SELECT s FROM Student s WHERE s.email = ?1")
+      - This is actually JPQL (JPA Query Language)
+      - JPQL is similar to SQL, but instead of operating on tables and columns, it operates on entities and their properties.
+      - Here, Student refers to Student class and not table
+      
+
+- In SService, use this function findStudentByEmail to check whether email ID already exists in DB.
+  - If yes, throw an exception
+  - Else, add student to DB using SRepo.save(student)
+  
+- Add server.error.include-message in application.properties file to include exception message in console as part of response body
+  
+- Test POST request
+  - On adding new student, response status code 200 will be received; check DB / webpage where new student will be added
+  - On adding existing student, response status code 500 will be received with custom defined exception message
+  
+- Observations: 
+  - Data is not persisted in the DB
+  - On stopping server and restarting, and checking DB again, the new student sent via POST request is not longer present in DB
+  - Only the two statically hard-code students are present
+  
+
+
+22. Writing Code for Other REST Verbs: DELETE
+
+- Create function with @DeleteMapping in SController
+- Use path and @PathVariable to fetch StudentId with Long datatype
+- Make a call to SService.deleteStudent()
+
+- Define method in SService; write logic here in SService
+- Use existsById, deleteById to achieve this.
+- Test POST request similar to Notes #21
+
+
+
+23. Writing Code for Other REST Verbs: PUT
+
+- PUT is used to update existing data
+- Use @PutMapping with path, @PathVariable, @RequestParam to achieve this
+- Additionally, while implementing business logic inside SService, use @Transactional
+  - This essentially makes the entity go into a managed state and updation can take place.
+  - This is in relation to Hibernate Entity Life Cycle
+  - Can refer to amigocodes video
+  
+- Test UPDATE request similar to Notes #21
+  - Use %20 to account for spaces between strings
+  - Data is updated in DB as well as web page
+    - This is logical since web page displays data from DB itself
+
+
+
+24. Application Testing
+
+- Important to learn testing of application
+- Integration, Unit testing and so on.
+- How to test external services
+  - Example, Stripe -> testing w/o connecting to actual service
+  
+
+
+25. Packaging and Running Application
+
+- Run mvn clean from Maven RHS panel which deletes target folder
+- Then, run mvn install, which rebuilds, recompiles, reruns tests, revalidates entire code base for the application
+  - This also recreates target folder
+- Now, inside the target folder, look for the .jar file
+
+- Navigate to target folder
+- Run the jar file using this command:
+  $ java -jar <jar_name> 
+
+- Logs are generated similar to how we used IntelliJ to run application
+
+- Now, can create multiple instances as well of the application depending on Port number
+  $ java -jar <jar_name> --server.port=<port_number>
+
+- We can use this jar file to deploy to a server, Dockerize it in a container and so on.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
